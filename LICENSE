@@ -1,3 +1,2 @@
-git has a mutable index called stdge.
-git has a work station.
-
+git add :把文件提交到暂存区
+git commit -m "..":把文件提交到当前分支.
