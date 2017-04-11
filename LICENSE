@@ -1,2 +1,7 @@
 git add :把文件提交到暂存区
 git commit -m "..":把文件提交到当前分支.
+git reset HEAD readme.txt : 撤销暂存区的修改
+git checkout -- readme.txt  : 删除工作区的修改
+git diff readme.txt : 显示文件修改过得内容
+git log : 显示所有修改过得版本和修改提示信息
+git log --pretty=oneline : 将版本号和修改的提示信息显示到同一行(方便观察)
