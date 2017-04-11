@@ -5,3 +5,7 @@ git checkout -- readme.txt  : 删除工作区的修改
 git diff readme.txt : 显示文件修改过得内容
 git log : 显示所有修改过得版本和修改提示信息
 git log --pretty=oneline : 将版本号和修改的提示信息显示到同一行(方便观察)
+git reflog:
+git rm test : 从版本库删除test.
+git checkout -- test : 如果在工作区失误删除了test,这条命令可以将test恢复回来(因为版本库中还有test)
+git ,,
