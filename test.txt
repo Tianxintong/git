@@ -4,11 +4,20 @@ git  init :初始化一个版本库.
 添加文件到版本库:
 1.  git add test.txt 
 2.  git commit -m "修改说明"
+
+
 3.  git status :查看工作区的状况.
 4.  git diff :查看文件修改内容.
 5.  git log:从近到远查看提交日志
 6.  git --pretty=oneline:所有信息显示在同一行
 7.  log中的一大窜数字是commit  id(版本号).
 8.  git reset --hard HEAD^ : 当前版本回退到上一版本
+9.  git reset --hard 版本号:回退到指定版本.
+10.  git reflog : 显示你在每个相应的版本执行过那些命令,在这里可以查询到以前的每一个版本的版本号,.
+11.  git的版本回退速度非常快,因为在Git内部有个指向当前版本的HEAD指针,当你回退版本的时候,Git仅仅是把HEAD指针的指向改变了,
 
-.....
+12. Git的版本库里存了很东西,其中最重要的是 暂存区(stage),还有Git为我们创建的第一个分支(master),以及一个HEAD指针 指向master, 前面的git add就是把修改过的文件添加到暂存区;gitcommit 就是往master分支上提交更改
+
+13.  Git为什么比其他版本控制系统设计的优秀?
+   因为Git跟踪并管理的是3修改,而非文件.
+   每次git commit提交到master的时暂存区的修改,如果修改过了但是没有把修改提交到暂存区,则无法git commit.
