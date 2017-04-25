@@ -4,3 +4,5 @@ git  init :初始化一个版本库.
 添加文件到版本库:
 1.  git add test.txt 
 2.  git commit -m "修改说明"
+3.  git status :查看工作区的状况.
+4.  git diff :查看文件修改内容.
