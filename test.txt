@@ -1,3 +1,6 @@
 today now start learn git.
 today is 4-25
-
+git  init :初始化一个版本库.
+添加文件到版本库:
+1.  git add test.txt 
+2.  git commit -m "修改说明"
