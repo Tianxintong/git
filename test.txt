@@ -26,4 +26,6 @@ git  init :初始化一个版本库.
 15. git reset --HEAD filename :把暂存区的修改回退到工作区 git reset 既可以回退版本也可以把暂存区的修改回退到工作区
 
 16. git rm :用于删除一个已经被提交到版本库的文件.  如果在文件管理中直接删除了该文件,则工作区和版本库就不一致了,必须git  rm filename 删除版本库中的文件
-
+ 17. 关联一个远程库:  git remote add origin git@github.com:Tianxintong/git.git  (注意origin是远程库的名字,这是Git的默认叫法. Tianxinong是你的GitHub 账户名)
+   关联后: git push -u origin master  第一次推送master分支的所有内容
+   此后每次本地提交后,只要有必要,就可以使用命令 :git push origin master 推送最新的修该
