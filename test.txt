@@ -10,3 +10,5 @@ git  init :初始化一个版本库.
 6.  git --pretty=oneline:所有信息显示在同一行
 7.  log中的一大窜数字是commit  id(版本号).
 8.  git reset --hard HEAD^ : 当前版本回退到上一版本
+
+.....
