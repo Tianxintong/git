@@ -1,4 +1,4 @@
-#include"./utili.h"
+#include"./utili_cli.h"
 
 int main(int argc,char *argv[])
 {
@@ -52,9 +52,11 @@ int main(int argc,char *argv[])
 			ret= recv(sockfd, buffer, MAX_BUFFER_SIZE,0);
 			if(ret == 0)
 			{
-				printf("sever close connection.\n");
-				break;
+			//	printf("sever close connection.\n");
+			//	break;
+		  		continue;
 			}
+			if(ret!=0)
 			printf("msg>:%s\n",buffer);
 		}
 		else if(fds[1].revents & POLLHUP)

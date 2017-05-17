@@ -144,7 +144,10 @@ int run_child(int idx,client_data* users,char *share_mem)
 				}
 				else
 				{
-					send(pipefd,(char*)&idx,sizeof(idx),0);
+					printf("data from client =%d,   %s\n",connfd,share_mem+idx*BUFFER_SIZE);//***********
+					ret = send(pipefd,(char*)&idx,sizeof(idx),0);
+					if(ret == -1)
+					printf(" child process send to parent Fail.errno=%d\n",errno);
 				}
 			}
 			else if((sockfd == pipefd)&&(events[i].events & EPOLLIN))
@@ -165,7 +168,9 @@ int run_child(int idx,client_data* users,char *share_mem)
 				}
 				else 
 				{
-					send(connfd,share_mem+client*BUFFER_SIZE,BUFFER_SIZE,0);
+					ret = send(connfd,share_mem+client*BUFFER_SIZE,BUFFER_SIZE,0);
+					if(ret == -1)
+					printf("child send to client Fail.errno = %d\n",errno);
 				}
 			}
 			else
@@ -201,6 +206,10 @@ int main(int argc, char* argv[])
 	assert(listenfd >= 0);
 
 	ret = bind(listenfd,(struct sockaddr*)&address,sizeof(address));
+	if(ret== -1)
+	{
+		printf("errno = %d\n",errno);
+	}
 	assert(ret!=-1);
 
 	ret = listen(listenfd,5);
@@ -274,7 +283,7 @@ int main(int argc, char* argv[])
 				}
 				users[user_count].address = client_address;
 				users[user_count].connfd = connfd;
-				ret = socketpair(PF_UNIX,SOCK_STREAM,0,users[connfd].pipefd);
+				ret = socketpair(PF_UNIX,SOCK_STREAM,0,users[user_count].pipefd);
 				assert(ret!=-1);
 				pid_t pid = fork();
 				if(pid<0)
