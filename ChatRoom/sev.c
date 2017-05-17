@@ -146,7 +146,7 @@ int main(const int argc,char *argv[])
 					if(fds[j].fd == connfd)
 						continue;
 					fds[j].events |= ~POLLIN;
-					fds[j].events|=POLLOUT;
+					fds[j].events |= POLLOUT;
 					users[fds[j].fd].write_buf = users[connfd].buf;
 				}
 			}
@@ -156,14 +156,14 @@ int main(const int argc,char *argv[])
 			int connfd = fds[i].fd;
 			if(!users[connfd].write_buf)
 			{
-			fds[i].events |=~POLLOUT;
-			fds[i].events |=POLLIN;
+			fds[i].events &=~POLLOUT;
+			fds[i].events &=POLLIN;
 				continue;
 			}
 			ret = send(connfd,users[connfd].write_buf,MAX_BUFFER_SIZE,0);
 			users[connfd].write_buf = NULL;
-			fds[i].events |=~POLLOUT;
-			fds[i].events |=POLLIN;
+			fds[i].events &=~POLLOUT;
+			fds[i].events &=POLLIN;
 
 		}
 	}
