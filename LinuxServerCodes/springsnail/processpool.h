@@ -199,7 +199,7 @@ void processpool< C, H, M >::run_child( const vector<H>& arg )
 
     while( ! m_stop )
     {
-        number = epoll_wait( m_epollfd, events, MAX_EVENT_NUMBER, EPOLL_WAIT_TIME );
+        number = epoll_wait( m_epollfd, events, MAX_EVENT_NUMBER,-1 /*EPOLL_WAIT_TIME*/ );
         if ( ( number < 0 ) && ( errno != EINTR ) )
         {
             log( LOG_ERR, __FILE__, __LINE__, "%s", "epoll failure" );
@@ -342,7 +342,7 @@ void processpool< C, H, M >::run_parent()
 
     while( ! m_stop )
     {
-        number = epoll_wait( m_epollfd, events, MAX_EVENT_NUMBER, EPOLL_WAIT_TIME );
+        number = epoll_wait( m_epollfd, events, MAX_EVENT_NUMBER, -1 /*EPOLL_WAIT_TIME*/ );
         if ( ( number < 0 ) && ( errno != EINTR ) )
         {
             log( LOG_ERR, __FILE__, __LINE__, "%s", "epoll failure" );
