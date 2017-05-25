@@ -1,0 +1,22 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+FD_LIMIT	sev.c	5;"	d	file:
+MAX_BUFFER_SIZE	utili.h	19;"	d
+MAX_LISTEN_QUEUE	sev.c	3;"	d	file:
+SERVER_IP	utili.h	16;"	d
+SERVER_PORT	utili.h	17;"	d
+USER_LIMIT	sev.c	4;"	d	file:
+_GNU_SOURCE	utili.h	1;"	d
+address	sev.c	/^	struct sockaddr_in address;$/;"	m	struct:client_data	typeref:struct:client_data::sockaddr_in	file:
+buf	sev.c	/^	char buf[MAX_BUFFER_SIZE];$/;"	m	struct:client_data	file:
+client_data	sev.c	/^typedef struct client_data$/;"	s	file:
+client_data	sev.c	/^}client_data;$/;"	t	typeref:struct:client_data	file:
+main	cli.c	/^int main(int argc,char *argv[])$/;"	f
+main	sev.c	/^int main(const int argc,char *argv[])$/;"	f
+main	test_dup.c	/^int main()$/;"	f
+setnonblocking	sev.c	/^int setnonblocking(int fd)$/;"	f
+write_buf	sev.c	/^	char *write_buf;$/;"	m	struct:client_data	file:
