@@ -11,9 +11,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include<string.h>
+#include<mqueue.h>
 #include<wait.h>
+
 #define MAXLEN 1024
 
+#define FILE_MODE  (S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)
+
+typedef unsigned int    uint_t;
 void client(int readfd,int writefd)
 {
 	size_t len;
