@@ -1,0 +1,42 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+SP_COUNTED_IMPL_YY	shared_ptr/config.h	1;"	d
+_SHARED_COUNT_H	shared_ptr/shared_count.h	2;"	d
+_SHARED_PTR_H	shared_ptr/shared_ptr.h	2;"	d
+_SP_COUNTED_BASE_H	shared_ptr/sp_counted_base.h	2;"	d
+_SP_COUNTED_IMPL_H	shared_ptr/sp_counted_impl.h	2;"	d
+_SP_COUNTED_IMPL_H	shared_ptr/sp_counted_impl_yy.h	2;"	d
+data	test.cpp	/^	int data;$/;"	m	class:test	file:
+dispose	shared_ptr/sp_counted_impl.h	/^	virtual void dispose()$/;"	f	class:sp_counted_impl
+dispose	shared_ptr/sp_counted_impl_yy.h	/^	virtual void dispose()$/;"	f	class:sp_counted_impl_yy
+main	shared_ptr/test.cpp	/^int main()$/;"	f
+main	test.cpp	/^int main()$/;"	f
+operator int	test.cpp	/^	operator int()const$/;"	f	class:test
+pi_	shared_ptr/shared_count.h	/^	sp_counted_base * pi_;$/;"	m	class:shared_count
+pn	shared_ptr/shared_ptr.h	/^	shared_count pn;$/;"	m	class:shared_ptr
+px	shared_ptr/shared_ptr.h	/^ 	Y* px;$/;"	m	class:shared_ptr
+px_	shared_ptr/sp_counted_impl.h	/^	X* px_;$/;"	m	class:sp_counted_impl
+px_	shared_ptr/sp_counted_impl_yy.h	/^	X* px_;$/;"	m	class:sp_counted_impl_yy
+release	shared_ptr/sp_counted_base.h	/^	void release()$/;"	f	class:sp_counted_base
+shared_count	shared_ptr/shared_count.h	/^	shared_count(Y *p = 0)$/;"	f	class:shared_count
+shared_count	shared_ptr/shared_count.h	/^class shared_count$/;"	c
+shared_ptr	shared_ptr/shared_ptr.h	/^	shared_ptr(Y* p = 0):px(p),pn(p)$/;"	f	class:shared_ptr
+shared_ptr	shared_ptr/shared_ptr.h	/^class shared_ptr$/;"	c
+sp_counted_base	shared_ptr/sp_counted_base.h	/^	sp_counted_base():use_count_(1)$/;"	f	class:sp_counted_base
+sp_counted_base	shared_ptr/sp_counted_base.h	/^class sp_counted_base$/;"	c
+sp_counted_impl	shared_ptr/sp_counted_impl.h	/^	sp_counted_impl(X *px):px_(px)$/;"	f	class:sp_counted_impl
+sp_counted_impl	shared_ptr/sp_counted_impl.h	/^class sp_counted_impl:public sp_counted_base$/;"	c
+sp_counted_impl_yy	shared_ptr/sp_counted_impl_yy.h	/^	sp_counted_impl_yy(X *px):px_(px)$/;"	f	class:sp_counted_impl_yy
+sp_counted_impl_yy	shared_ptr/sp_counted_impl_yy.h	/^class sp_counted_impl_yy:public sp_counted_base$/;"	c
+test	test.cpp	/^	test(int d = 0 ):data(d)$/;"	f	class:test
+test	test.cpp	/^class test$/;"	c	file:
+use_count_	shared_ptr/sp_counted_base.h	/^	int use_count_;$/;"	m	class:sp_counted_base
+~shared_count	shared_ptr/shared_count.h	/^	~shared_count()$/;"	f	class:shared_count
+~shared_ptr	shared_ptr/shared_ptr.h	/^	~shared_ptr()$/;"	f	class:shared_ptr
+~sp_counted_base	shared_ptr/sp_counted_base.h	/^	~sp_counted_base()$/;"	f	class:sp_counted_base
+~sp_counted_impl	shared_ptr/sp_counted_impl.h	/^	~sp_counted_impl()$/;"	f	class:sp_counted_impl
+~sp_counted_impl_yy	shared_ptr/sp_counted_impl_yy.h	/^	~sp_counted_impl_yy()$/;"	f	class:sp_counted_impl_yy
