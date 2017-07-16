@@ -28,6 +28,19 @@ RBNode* _Buynode(Type v)
 	return s;
 }
 
+void sortPrint(RBTree &t,RBNode* r)
+{
+	if(r == t.NIL)
+		return;
+	sortPrint(t,r->leftChild);
+	cout<<r->data<<"  ";
+	sortPrint(t,r->rightChild);
+}
+void sortPrint(RBTree &t)
+{
+	sortPrint(t,t.root);
+}
+
 void InitRBTree(RBTree &t)
 {
 	t.NIL = _Buynode(0);

@@ -214,7 +214,7 @@ private:
 		AVLNode<Type>* q;
 		AVLNode<Type>*pr = NULL;
 		stack< AVLNode<Type>* > st;
-
+		int key = 0;
 		while(p)
 		{
 			if(p->data == x)
@@ -233,13 +233,15 @@ private:
 			pr = p;
 			st.push(pr);
 
-			q = q->leftChild;
+			q = p->leftChild;
 			while(q->rightChild)
 			{
+				st.push(q);//@@
 				pr = q;
 				q = q->rightChild;
 			}
 			p->data = q->data;
+			key = q->data;
 			p = q;//p指向要删除的结点
 		}
 		
@@ -260,34 +262,58 @@ private:
 			{
 				pr = st.top();
 				st.pop();
-
-				if(pr->leftChild == q)
+/*
+				if(pr->leftChild == q)//有漏洞
 					pr->bf++;
 				else
+				pr->bf--;
+*/ 	
+				if(pr->data == key)
+				{
+					if(key<x)
+					pr->bf++;
+					else
 					pr->bf--;
+				}
+				else
+				{
+					if(pr->data < x)
+					pr->bf--;
+					else
+					pr->bf++;
+				}
 				if(pr->bf == -1||pr->bf == 1)
 					break;
 				else if(pr->bf == 0)
 					q = pr;
 				else
 				{
-					if(pr->bf > 0)
+					if(pr->bf > 0 )
 						q = pr->rightChild;
 					else
 						q = pr->leftChild;
 
+					
 					if(q->bf == 0)
 					{
 						if(pr->bf > 0)
 						{
-							//RotateL(pr)
+					//	/*
+							RotateL(pr);
 							//bf
+							pr->bf = 1;
+							q->bf = -1;
+					//		*/
 						}
 						else
 						{
-							//RotateR(pr)
+					//	/*
+							RotateR(pr);
 							//pr->bf
 								//pr->rightChild->bf
+							pr->bf = -1;
+							q->bf = 1;
+					//	*/
 						}
 					}
 					else if(q->bf  > 0)
@@ -300,7 +326,6 @@ private:
 						{
 								RotateLR(pr);
 						}
-						break;
 					}
 					else
 					{
@@ -312,11 +337,14 @@ private:
 					break;
 				}
 			}
+			if(!st.empty())
+			{
 			AVLNode<Type> *ppr = st.top();
 			if(ppr->data > pr->data)
 			ppr->leftChild = pr;
 			else
 			ppr->rightChild = pr;
+			}
 		}
 	delete p;
 	return true;
