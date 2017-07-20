@@ -14,6 +14,12 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include<iostream>
+#include<stdlib.h>
+#include<deque>
+#include<string.h>
+using namespace std;
+#include"./bigint.h"
 
 #define USER_LIMIT 5
 #define BUFFER_SIZE 1024
@@ -29,12 +35,12 @@ struct client_data
     int pipefd[2];
 };
 
-static const char* shm_name = "/my_shm";
+//static const char* shm_name = "/my_shm";
 int sig_pipefd[2];
 int epollfd;
 int listenfd;
-int shmfd;
-char* share_mem = 0;
+//int shmfd;
+//char* share_mem = 0;
 client_data* users = 0;
 int* sub_process = 0;
 int user_count = 0;
@@ -84,7 +90,7 @@ void del_resource()
     close( sig_pipefd[1] );
     close( listenfd );
     close( epollfd );
-    shm_unlink( shm_name );
+    //shm_unlink( shm_name );
     delete [] users;
     delete [] sub_process;
 }
@@ -105,6 +111,13 @@ int run_child( int idx, client_data* users, char* share_mem )
     addfd( child_epollfd, pipefd );
     int ret;
     addsig( SIGTERM, child_term_handler, false );
+	
+	char opt;
+	u_char buffer[BUFFER_SIZE];
+	u_char *p;
+	size_t data_size = 0;
+	BigInt b1(0);
+	BigInt b2(0);
 
     while( !stop_child )
     {
@@ -120,6 +133,37 @@ int run_child( int idx, client_data* users, char* share_mem )
             int sockfd = events[i].data.fd;
             if( ( sockfd == connfd ) && ( events[i].events & EPOLLIN ) )
             {
+				//子进程接受客户数据，进行数据处理，然后把结果发给客户
+				ret = recv(connfd,&opt,sizeof(char),0);
+				if(ret < 0)
+				{
+					if(errno != EAGAIN)
+					{
+						stop_child = true;
+					}
+				}
+				else if(ret == 0)
+				stop_child = true;
+				else
+				{
+					ret = recv(connfd,&data_size,sizeof(size_t),0);
+					if(ret <0)
+					if(errno != EAGAIN)
+						stop_child = true;
+					else if(ret == 0)
+						stop_child = true;
+					else
+					{
+						int len = 0;
+						while(len < data_size && ret>0)
+						{
+							ret = recv(connfd,buffer,BUFFER_SIZE,0);
+							//?????????????
+						}
+					}
+				}
+
+			/*
                 memset( share_mem + idx*BUFFER_SIZE, '\0', BUFFER_SIZE );
                 ret = recv( connfd, share_mem + idx*BUFFER_SIZE, BUFFER_SIZE-1, 0 );
                 if( ret < 0 )
@@ -137,9 +181,11 @@ int run_child( int idx, client_data* users, char* share_mem )
                 {
                     send( pipefd, ( char* )&idx, sizeof( idx ), 0 );
                 }
+			*/
             }
             else if( ( sockfd == pipefd ) && ( events[i].events & EPOLLIN ) )
             {
+/*
                 int client = 0;
                 ret = recv( sockfd, ( char* )&client, sizeof( client ), 0 );
                 if( ret < 0 )
@@ -155,8 +201,9 @@ int run_child( int idx, client_data* users, char* share_mem )
                 }
                 else
                 {
-                    send( connfd, share_mem + client * BUFFER_SIZE, BUFFER_SIZE, 0 );
+  //                  send( connfd, share_mem + client * BUFFER_SIZE, BUFFER_SIZE, 0 );
                 }
+*/
             }
             else
             {
@@ -221,7 +268,7 @@ int main( int argc, char* argv[] )
     addsig( SIGPIPE, SIG_IGN );
     bool stop_server = false;
     bool terminate = false;
-
+/*
     shmfd = shm_open( shm_name, O_CREAT | O_RDWR, 0666 );
     assert( shmfd != -1 );
     ret = ftruncate( shmfd, USER_LIMIT * BUFFER_SIZE ); 
@@ -230,7 +277,7 @@ int main( int argc, char* argv[] )
     share_mem = (char*)mmap( NULL, USER_LIMIT * BUFFER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0 );
     assert( share_mem != MAP_FAILED );
     close( shmfd );
-
+*/
     while( !stop_server )
     {
         int number = epoll_wait( epollfd, events, MAX_EVENT_NUMBER, -1 );
@@ -278,8 +325,8 @@ int main( int argc, char* argv[] )
                     close( users[user_count].pipefd[0] );
                     close( sig_pipefd[0] );
                     close( sig_pipefd[1] );
-                    run_child( user_count, users, share_mem );
-                    munmap( (void*)share_mem,  USER_LIMIT * BUFFER_SIZE );
+  //@@@                  run_child( user_count, users, share_mem );
+//                    munmap( (void*)share_mem,  USER_LIMIT * BUFFER_SIZE );
                     exit( 0 );
                 }
                 else
@@ -365,6 +412,9 @@ int main( int argc, char* argv[] )
             }
             else if( events[i].events & EPOLLIN )
             {
+
+			//目前父子进程不需要交互
+			/*
                 int child = 0;
                 ret = recv( sockfd, ( char* )&child, sizeof( child ), 0 );
                 printf( "read data from child accross pipe\n" );
@@ -387,6 +437,7 @@ int main( int argc, char* argv[] )
                         }
                     }
                 }
+				*/
             }
         }
     }

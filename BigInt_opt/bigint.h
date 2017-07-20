@@ -1,5 +1,4 @@
-#pragma o
-ce
+#pragma once
 typedef unsigned char u_char;
 #define POSITIVE '+'
 #define NEGATIVE '-'
