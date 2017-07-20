@@ -2,6 +2,8 @@
 #include<iostream>
 #include<stdlib.h>
 #include<deque>
+#include<stack>
+#include<vector>
 #include<string.h>
 using namespace std;
 #include"./bigint.h"
@@ -13,14 +15,35 @@ using namespace std;
 	BigInt b1(0);
 	BigInt b2(0);
 	BigInt b3(0);
-
+	stack<char> st1;
+	stack<char> st2;
+	vector<char> v1;
+	vector<char> v2;
 void SendData()
 {
 	int ret;
-	int len = b1.size();
+	char tm;
+	int len = v1.size()+v2.size()+1;
 	ret = send(sockfd,(const void *)&opt,1,0);
-	send(sockfd,(const void *)&len,sizeof(size_t),0);
+	ret = send(sockfd,&len,1,0);
+	
 	//@@@
+	vector<char>::iterator it = v1.begin();
+	while(it!=v1.end())
+	{
+		tm = *it;
+		send(sockfd,&tm,1,0);
+		++it;
+	}
+	char tmp = '\n';
+	send(sockfd,&tmp,1,0);
+	it = v2.begin();
+	while(it!= v2.end())
+	{
+		tm = *it;
+		send(sockfd,&tm,1,0);
+		++it;
+	}
 	
 }		
 int main(int argc,char *argv[])
@@ -62,33 +85,36 @@ int main(int argc,char *argv[])
 
 	printf("Input OPT:\n");
 	scanf("%c",&opt);
-	flush(stdin);
+	scanf("%c",&tmp);//@@
 	b1.clear();
 	b2.clear();
 	printf("Input first opt number:\n");
+//	cin.clear();
 	while(scanf("%c",&tmp) )
 	{
 			if(tmp  == '\n')
 			break;
 			b1.push_back( tmp );
+			v1.push_back(tmp);
 	}
-	flush(stdin);
+//	cin.clear();
 	printf("Input Second opt number\n");
 	while(scanf("%c",&tmp))
 	{
 			if(tmp  == '\n')
 			break;
 			b2.push_back( tmp );
+			v2.push_back(tmp);
 	}
-	cout<<flush;
+//	cin.clear();
 	switch(opt)
 	{
 		case'+':
-	//		SendData();
+			SendData();
 
 			break;
 		case '-':
-	//		SendData();
+		SendData();
 			break;
 		default:
 		break;
@@ -105,6 +131,13 @@ int main(int argc,char *argv[])
 		if(fds[1].revents & POLLIN)
 		{
 		//来自服务器的计算结果
+		b3.clear();
+		u_char t;
+		while(recv(sockfd,&t,1,0))
+		{
+			b3.push_back(t);
+		}
+		b3.show();
 
 		/*
 			memset(buffer, '\0',MAX_BUFFER_SIZE);

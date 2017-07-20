@@ -100,7 +100,7 @@ void child_term_handler( int sig )
     stop_child = true;
 }
 
-int run_child( int idx, client_data* users, char* share_mem )
+int run_child( int idx, client_data* users )
 {
     epoll_event events[ MAX_EVENT_NUMBER ];
     int child_epollfd = epoll_create( 5 );
@@ -113,11 +113,11 @@ int run_child( int idx, client_data* users, char* share_mem )
     addsig( SIGTERM, child_term_handler, false );
 	
 	char opt;
-	u_char buffer[BUFFER_SIZE];
-	u_char *p;
+	u_char buffer;
 	size_t data_size = 0;
 	BigInt b1(0);
 	BigInt b2(0);
+	BigInt b3(0);
 
     while( !stop_child )
     {
@@ -134,6 +134,41 @@ int run_child( int idx, client_data* users, char* share_mem )
             if( ( sockfd == connfd ) && ( events[i].events & EPOLLIN ) )
             {
 				//子进程接受客户数据，进行数据处理，然后把结果发给客户
+				b1.clear();
+				b2.clear();
+				ret = recv(connfd,&opt,1,0);
+				if(ret != 0)
+				cout<<"receive opt : "<<opt<<endl;
+				while( recv(connfd,&buffer,1,0) || buffer!='\n')
+				{
+					b1.push_back(buffer);
+				}
+				while(recv(connfd,&buffer,1,0) )
+				{
+					b2.push_back(buffer);
+				}
+				switch(opt)
+				{
+					case '+':
+					BigInt::Add(b3,b1,b2);
+					break;
+					case '-':
+					BigInt::Sub(b3,b1,b2);
+					break;
+					default:
+
+					break;
+				}
+				u_char t ;
+				deque<u_char>::iterator it = b3.begin();
+				while(it != b3.end())
+				{
+					t = *it;
+					send(connfd,&t,1,0);
+					++it;
+				}
+
+		/*
 				ret = recv(connfd,&opt,sizeof(char),0);
 				if(ret < 0)
 				{
@@ -162,6 +197,7 @@ int run_child( int idx, client_data* users, char* share_mem )
 						}
 					}
 				}
+				*/
 
 			/*
                 memset( share_mem + idx*BUFFER_SIZE, '\0', BUFFER_SIZE );
@@ -325,7 +361,7 @@ int main( int argc, char* argv[] )
                     close( users[user_count].pipefd[0] );
                     close( sig_pipefd[0] );
                     close( sig_pipefd[1] );
-  //@@@                  run_child( user_count, users, share_mem );
+                    run_child( user_count, users );
 //                    munmap( (void*)share_mem,  USER_LIMIT * BUFFER_SIZE );
                     exit( 0 );
                 }
@@ -337,6 +373,7 @@ int main( int argc, char* argv[] )
                     users[user_count].pid = pid;
                     sub_process[pid] = user_count;
                     user_count++;
+					
                 }
             }
             else if( ( sockfd == sig_pipefd[0] ) && ( events[i].events & EPOLLIN ) )
