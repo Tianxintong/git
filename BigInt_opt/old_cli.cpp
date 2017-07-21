@@ -2,8 +2,6 @@
 #include<iostream>
 #include<stdlib.h>
 #include<deque>
-#include<stack>
-#include<vector>
 #include<string.h>
 using namespace std;
 #include"./bigint.h"
@@ -15,83 +13,16 @@ using namespace std;
 	BigInt b1(0);
 	BigInt b2(0);
 	BigInt b3(0);
-	stack<char> st1;
-	stack<char> st2;
-	vector<char> v1;
-	vector<char> v2;
+
 void SendData()
 {
 	int ret;
-	char tm;
-	int len = v1.size()+v2.size()+2;
+	int len = b1.size();
 	ret = send(sockfd,(const void *)&opt,1,0);
-//	ret = send(sockfd,&len,1,0);
-	
+	send(sockfd,(const void *)&len,sizeof(size_t),0);
 	//@@@
-	vector<char>::iterator it = v1.begin();
-	while(it!=v1.end())
-	{
-		if((*it >='0'&&*it<='9')||*it == '-'||*it == '+')
-		{
-			tm = *it;
-			send(sockfd,&tm,1,0);
-		}
-		++it;
-	}
-	char tmp = '\n';
-	send(sockfd,&tmp,1,0);
-	it = v2.begin();
-	while(it!= v2.end())
-	{	
-		if((*it >='0'&&*it<='9')||*it == '-'||*it == '+')
-		{
-			tm = *it;
-			send(sockfd,&tm,1,0);
-		}
-		++it;
-	}
-	tmp = '\n';
-	send(sockfd,&tmp,1,0);
 	
-}	
-void Input_Data()
-{
-	printf("Input OPT:\n");
-	scanf("%c",&opt);
-	scanf("%c",&tmp);//@@
-	b1.clear();
-	b2.clear();
-	b3.clear();
-	printf("Input first opt number:\n");
-	while(scanf("%c",&tmp) )
-	{
-			if(tmp  == '\n')
-			break;
-			b1.push_back( tmp );
-			v1.push_back(tmp);
-	}
-	printf("Input Second opt number\n");
-	while(scanf("%c",&tmp))
-	{
-			if(tmp  == '\n')
-			break;
-			b2.push_back( tmp );
-			v2.push_back(tmp);
-	}
-	switch(opt)
-	{
-		case'+':
-			SendData();
-
-			break;
-		case '-':
-		SendData();
-			break;
-		default:
-		break;
-	}
-
-}
+}		
 int main(int argc,char *argv[])
 {
 	if(argc<=2)
@@ -127,8 +58,41 @@ int main(int argc,char *argv[])
 	
 	int res = pipe(pipefd);
 	assert(res!=-1);
-	
-	Input_Data();
+		
+
+	printf("Input OPT:\n");
+	scanf("%c",&opt);
+	flush(stdin);
+	b1.clear();
+	b2.clear();
+	printf("Input first opt number:\n");
+	while(scanf("%c",&tmp) )
+	{
+			if(tmp  == '\n')
+			break;
+			b1.push_back( tmp );
+	}
+	flush(stdin);
+	printf("Input Second opt number\n");
+	while(scanf("%c",&tmp))
+	{
+			if(tmp  == '\n')
+			break;
+			b2.push_back( tmp );
+	}
+	cout<<flush;
+	switch(opt)
+	{
+		case'+':
+	//		SendData();
+
+			break;
+		case '-':
+	//		SendData();
+			break;
+		default:
+		break;
+	}
 
 	while(1)
 	{
@@ -141,14 +105,17 @@ int main(int argc,char *argv[])
 		if(fds[1].revents & POLLIN)
 		{
 		//来自服务器的计算结果
-			b3.clear();
-			u_char t;
-			while(recv(sockfd,&t,1,0) && t!= '\n')
+
+		/*
+			memset(buffer, '\0',MAX_BUFFER_SIZE);
+			ret= recv(sockfd, buffer, MAX_BUFFER_SIZE,0);
+			if(ret == 0)
 			{
-				b3.push_back(t);
+				printf("sever close connection.\n");
+				break;
 			}
-			b3.show();
-			Input_Data();
+			printf("msg>:%s\n",buffer);
+		*/
 		}
 		else if(fds[1].revents & POLLHUP)
 		{
@@ -158,6 +125,13 @@ int main(int argc,char *argv[])
 /*		if(fds[0].revents&POLLIN)
 		{
 		//来自stdin的数据
+	
+			ret = splice(0,NULL,pipefd[1],NULL,32768,SPLICE_F_MORE|SPLICE_F_MOVE);
+	//		if(ret<=0)
+	//		printf("NO  data from stdin\n");
+			ret = splice(pipefd[0],NULL,sockfd,NULL,32768,SPLICE_F_MORE|SPLICE_F_MOVE);
+		
+		
 		}
 */
 	}

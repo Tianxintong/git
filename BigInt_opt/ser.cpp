@@ -35,12 +35,9 @@ struct client_data
     int pipefd[2];
 };
 
-//static const char* shm_name = "/my_shm";
 int sig_pipefd[2];
 int epollfd;
 int listenfd;
-//int shmfd;
-//char* share_mem = 0;
 client_data* users = 0;
 int* sub_process = 0;
 int user_count = 0;
@@ -90,7 +87,6 @@ void del_resource()
     close( sig_pipefd[1] );
     close( listenfd );
     close( epollfd );
-    //shm_unlink( shm_name );
     delete [] users;
     delete [] sub_process;
 }
@@ -100,7 +96,7 @@ void child_term_handler( int sig )
     stop_child = true;
 }
 
-int run_child( int idx, client_data* users, char* share_mem )
+int run_child( int idx, client_data* users )
 {
     epoll_event events[ MAX_EVENT_NUMBER ];
     int child_epollfd = epoll_create( 5 );
@@ -113,11 +109,11 @@ int run_child( int idx, client_data* users, char* share_mem )
     addsig( SIGTERM, child_term_handler, false );
 	
 	char opt;
-	u_char buffer[BUFFER_SIZE];
-	u_char *p;
+	u_char buffer;
 	size_t data_size = 0;
 	BigInt b1(0);
 	BigInt b2(0);
+	BigInt b3(0);
 
     while( !stop_child )
     {
@@ -134,80 +130,58 @@ int run_child( int idx, client_data* users, char* share_mem )
             if( ( sockfd == connfd ) && ( events[i].events & EPOLLIN ) )
             {
 				//子进程接受客户数据，进行数据处理，然后把结果发给客户
-				ret = recv(connfd,&opt,sizeof(char),0);
-				if(ret < 0)
+				b1.clear();
+				b2.clear();
+				ret = recv(connfd,&opt,1,0);
+				if(ret != 0)
+				cout<<"receive opt : "<<opt<<endl;
+				while( recv(connfd,&buffer,1,0) && buffer!='\n')
 				{
-					if(errno != EAGAIN)
-					{
-						stop_child = true;
-					}
-				}
-				else if(ret == 0)
-				stop_child = true;
-				else
-				{
-					ret = recv(connfd,&data_size,sizeof(size_t),0);
-					if(ret <0)
-					if(errno != EAGAIN)
-						stop_child = true;
-					else if(ret == 0)
-						stop_child = true;
+					if(buffer=='+'||buffer == '-')
+					b1.push_back(buffer);
 					else
-					{
-						int len = 0;
-						while(len < data_size && ret>0)
-						{
-							ret = recv(connfd,buffer,BUFFER_SIZE,0);
-							//?????????????
-						}
-					}
+					b1.push_back(buffer-'0');
 				}
+				while(recv(connfd,&buffer,1,0)&&buffer != '\n' )
+				{
+					if(buffer == '+'||buffer == '-')
+					b2.push_back(buffer);
+					else
+					b2.push_back(buffer-'0');
+				}
+				switch(opt)
+				{
+					case '+':
+					BigInt::Add(b3,b1,b2);
+					break;
+					case '-':
+					BigInt::Sub(b3,b1,b2);
+					break;
+					default:
 
-			/*
-                memset( share_mem + idx*BUFFER_SIZE, '\0', BUFFER_SIZE );
-                ret = recv( connfd, share_mem + idx*BUFFER_SIZE, BUFFER_SIZE-1, 0 );
-                if( ret < 0 )
-                {
-                    if( errno != EAGAIN )
-                    {
-                        stop_child = true;
-                    }
-                }
-                else if( ret == 0 )
-                {
-                    stop_child = true;
-                }
-                else
-                {
-                    send( pipefd, ( char* )&idx, sizeof( idx ), 0 );
-                }
-			*/
+					break;
+				}
+				u_char t ;
+				deque<u_char>::iterator it = b3.begin();
+				while(it != b3.end())
+				{
+					t = *it;
+					send(connfd,&t,1,0);
+					++it;
+				}
+				t = '\n';
+				send(connfd,&t,1,0);
+
             }
+/*
             else if( ( sockfd == pipefd ) && ( events[i].events & EPOLLIN ) )
             {
-/*
-                int client = 0;
-                ret = recv( sockfd, ( char* )&client, sizeof( client ), 0 );
-                if( ret < 0 )
-                {
-                    if( errno != EAGAIN )
-                    {
-                        stop_child = true;
-                    }
-                }
-                else if( ret == 0 )
-                {
-                    stop_child = true;
-                }
-                else
-                {
-  //                  send( connfd, share_mem + client * BUFFER_SIZE, BUFFER_SIZE, 0 );
-                }
-*/
+				//
             }
+*/
             else
             {
-                continue;
+               // continue;
             }
         }
     }
@@ -239,6 +213,8 @@ int main( int argc, char* argv[] )
     assert( listenfd >= 0 );
 
     ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
+	if(ret == -1)
+	cout<<errno<<endl;
     assert( ret != -1 );
 
     ret = listen( listenfd, 5 );
@@ -268,17 +244,8 @@ int main( int argc, char* argv[] )
     addsig( SIGPIPE, SIG_IGN );
     bool stop_server = false;
     bool terminate = false;
-/*
-    shmfd = shm_open( shm_name, O_CREAT | O_RDWR, 0666 );
-    assert( shmfd != -1 );
-    ret = ftruncate( shmfd, USER_LIMIT * BUFFER_SIZE ); 
-    assert( ret != -1 );
-
-    share_mem = (char*)mmap( NULL, USER_LIMIT * BUFFER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0 );
-    assert( share_mem != MAP_FAILED );
-    close( shmfd );
-*/
-    while( !stop_server )
+    
+	while( !stop_server )
     {
         int number = epoll_wait( epollfd, events, MAX_EVENT_NUMBER, -1 );
         if ( ( number < 0 ) && ( errno != EINTR ) )
@@ -325,7 +292,7 @@ int main( int argc, char* argv[] )
                     close( users[user_count].pipefd[0] );
                     close( sig_pipefd[0] );
                     close( sig_pipefd[1] );
-  //@@@                  run_child( user_count, users, share_mem );
+                    run_child( user_count, users );
 //                    munmap( (void*)share_mem,  USER_LIMIT * BUFFER_SIZE );
                     exit( 0 );
                 }
@@ -337,6 +304,7 @@ int main( int argc, char* argv[] )
                     users[user_count].pid = pid;
                     sub_process[pid] = user_count;
                     user_count++;
+					
                 }
             }
             else if( ( sockfd == sig_pipefd[0] ) && ( events[i].events & EPOLLIN ) )
@@ -409,35 +377,6 @@ int main( int argc, char* argv[] )
                         }
                     }
                 }
-            }
-            else if( events[i].events & EPOLLIN )
-            {
-
-			//目前父子进程不需要交互
-			/*
-                int child = 0;
-                ret = recv( sockfd, ( char* )&child, sizeof( child ), 0 );
-                printf( "read data from child accross pipe\n" );
-                if( ret == -1 )
-                {
-                    continue;
-                }
-                else if( ret == 0 )
-                {
-                    continue;
-                }
-                else
-                {
-                    for( int j = 0; j < user_count; ++j )
-                    {
-                        if( users[j].pipefd[0] != sockfd )
-                        {
-                            printf( "send data to child accross pipe\n" );
-                            send( users[j].pipefd[0], ( char* )&child, sizeof( child ), 0 );
-                        }
-                    }
-                }
-				*/
             }
         }
     }
