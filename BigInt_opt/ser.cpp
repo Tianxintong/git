@@ -135,7 +135,42 @@ int run_child( int idx, client_data* users )
 				ret = recv(connfd,&opt,1,0);
 				if(ret != 0)
 				cout<<"receive opt : "<<opt<<endl;
+<<<<<<< HEAD:BigInt_opt/ser.cpp
 				while( recv(connfd,&buffer,1,0) && buffer!='\n')
+=======
+				while( recv(connfd,&buffer,1,0) || buffer!='\n')
+				{
+					b1.push_back(buffer);
+				}
+				while(recv(connfd,&buffer,1,0) )
+				{
+					b2.push_back(buffer);
+				}
+				switch(opt)
+				{
+					case '+':
+					BigInt::Add(b3,b1,b2);
+					break;
+					case '-':
+					BigInt::Sub(b3,b1,b2);
+					break;
+					default:
+
+					break;
+				}
+				u_char t ;
+				deque<u_char>::iterator it = b3.begin();
+				while(it != b3.end())
+				{
+					t = *it;
+					send(connfd,&t,1,0);
+					++it;
+				}
+
+		/*
+				ret = recv(connfd,&opt,sizeof(char),0);
+				if(ret < 0)
+>>>>>>> 73b4576e95806081b5586b64244f9dfdc4e6e3b9:BigInt_opt/Ser.cpp
 				{
 					if(buffer=='+'||buffer == '-')
 					b1.push_back(buffer);
@@ -149,6 +184,7 @@ int run_child( int idx, client_data* users )
 					else
 					b2.push_back(buffer-'0');
 				}
+<<<<<<< HEAD:BigInt_opt/ser.cpp
 				switch(opt)
 				{
 					case '+':
@@ -171,6 +207,9 @@ int run_child( int idx, client_data* users )
 				}
 				t = '\n';
 				send(connfd,&t,1,0);
+=======
+				*/
+>>>>>>> 73b4576e95806081b5586b64244f9dfdc4e6e3b9:BigInt_opt/Ser.cpp
 
             }
 /*
