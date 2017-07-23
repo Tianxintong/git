@@ -32,7 +32,8 @@ public:
 	{return bi.begin();}
 	const_iter begin()const
 	{return bi.begin();}
-	
+	bool empty()
+	{return bi.empty();};
 	const_iter end()const
 	{return bi.end();}
 	iter end()
@@ -41,16 +42,28 @@ public:
 	{return bi[i];}
 	u_char operator[](int i)const
 	{return  bi[i];}
-
+	BigInt& operator=(const BigInt &bt)
+	{
+		(*this).clear();
+		const_iter it = bt.begin();
+		while(it != bt.end())
+		{
+			(*this).push_back(*it);
+			++it;
+		}
+	}
 	void clear_head_zero()
 	{ if(bi.back() == 0) bi.pop_back();}
 /////////////////////////////////////////
 	static u_char AddItem(u_char a,u_char b,u_char &sign);
 	static u_char SubItem(u_char a,u_char b,u_char &sign);
-	static void MulItem(BigInt &b, BigInt &b1,u_char x);
-	static void AddMove(BigInt &b, BigInt &b1,int offset);
+	static void MulItem(BigInt &b, const BigInt &b1,u_char x);
+	static void AddMove(BigInt &b, const BigInt &b1,int offset);
 	static void  Add(BigInt &b,const  BigInt &b1,const  BigInt &b2);
 	static void Sub(BigInt &b, const BigInt &b1, const BigInt &b2);
+	static void Mul(BigInt &bt,const BigInt &b1,const BigInt &b2);
+	static void Div(BigInt &bt,const BigInt &b1,const BigInt &b2);
+	static void Mod(BigInt &bt,const BigInt &b1,const BigInt &b2);
 
 ////////////////////////////////////////
 	bool operator<(const BigInt &b)const;
@@ -64,7 +77,16 @@ public:
 	BigInt& operator++(int);
 	BigInt& operator--();
 	BigInt& operator--(int);
+///////////////////////////////////////////////////////
+	BigInt& operator-=(const BigInt &b)
+	{
+		BigInt tmp(0);
+		BigInt::Sub(tmp,(*this),b);
+		(*this) = tmp;
+		return (*this);
+	}
 
+////////////////////////////////////////////////////////
 
 private:
 	deque<u_char> bi;
@@ -96,6 +118,7 @@ void BigInt::show()
 void BigInt::SetSymbol(u_char sign)
 {
 	bi.insert(bi.begin(),sign);
+//	*bi.begin() = sign;
 }
 BigInt::BigInt(long value)
 {
@@ -105,7 +128,7 @@ BigInt::BigInt(long value)
 	else
 	{
 		if(value<0)
-		{
+		{	
 			bi.pop_front();	
 			SetSymbol(NEGATIVE);
 			value = abs(value);
@@ -135,7 +158,10 @@ BigInt::BigInt( u_char *str,int len)
 		}
 	}
 	else
-	bi.push_back(0);
+	{
+		SetSymbol(POSITIVE);
+		bi.push_back(0);
+	}
 }
 ////////////////////////////////////////////////////////////////
 bool BigInt::operator<(const BigInt &b)const
@@ -256,6 +282,14 @@ bool BigInt::operator>(const BigInt &b)const
 bool BigInt::operator<=(const BigInt &b)const
 {
 	return !((*this)>b);
+}
+bool BigInt::operator==(const BigInt &b)const
+{
+	return bi==b.bi;
+}
+bool BigInt::operator!=(const BigInt&b)const
+{
+	return bi!=b.bi;
 }
 ///////////////////////////////////////////////////////////////
 u_char BigInt::AddItem(u_char a,u_char b,u_char &sign)
@@ -402,4 +436,94 @@ void  BigInt::Sub(BigInt &b,const BigInt &b1,const BigInt &b2)
 		}
 	}
 	b.clear_head_zero();
+}
+void BigInt::MulItem(BigInt &bt,const BigInt &bt1,u_char x)
+{
+	u_char mul,sign = 0;
+	const_iter it = bt1.begin();
+	++it;
+	while(it != bt1.end())
+	{
+		mul = x *(*it)+sign;
+		if( mul > 9)
+		{
+			sign = mul/10;
+			mul %= 10;
+		}
+		else
+		{
+			sign = 0;
+		}
+		bt.push_back(mul);
+		++it;
+	}
+	if(sign != 0)
+		bt.push_back(sign);
+}
+void BigInt::AddMove(BigInt &bt,const BigInt &bt1,int offset)
+{
+	if(bt.empty())
+	{
+		bt = bt1;
+		return ;
+	}
+	iter it = bt.begin();
+	const_iter it1 = bt1.begin();
+	++it;
+	++it1;
+	
+	while(offset--  )
+	{
+		++it;
+		assert(it!=bt.end());
+	}
+	u_char add,sign;
+	while(it != bt.end() && it1 != bt1.end())
+	{
+		add = AddItem(*it,*it1,sign);
+		*it = add;
+		++it;
+		++it1;
+	}
+	while(it != bt.end())
+	{
+		add = AddItem(*it,0,sign);
+		*it = add;
+		++it;
+	}
+	while(it1!= bt1.end())
+	{
+		add = AddItem(*it1,0,sign);
+		bt.push_back(add);
+		++it1;
+	}
+	if(sign!=0)
+	 bt.push_back(sign);
+
+
+}
+void BigInt::Mul(BigInt &bt,const BigInt &bt1,const  BigInt &bt2)
+{
+	bt.clear();
+	BigInt tmp;
+	const_iter it = bt2.begin();
+	++it;
+	int i = 0;
+	for(;it != bt2.end();++it)
+	{
+		tmp.clear();
+		tmp.SetSymbol(POSITIVE);
+		MulItem(tmp,bt1,*it);
+//		cout<<"bt1 * "<<(int)*it<<endl;
+//		tmp.show();
+		AddMove(bt,tmp,i++);
+	}
+	bt.pop_front();
+	if(bt1.begin() == bt2.begin())
+	bt.SetSymbol(POSITIVE);
+	else
+	bt.SetSymbol(NEGATIVE);
+}
+void BigInt::Div(BigInt &bt,const BigInt &bt1,const BigInt &b)
+{
 }
