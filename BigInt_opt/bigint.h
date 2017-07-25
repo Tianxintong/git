@@ -57,7 +57,12 @@ public:
 		}
 	}
 	void clear_head_zero()
-	{ if(bi.back() == 0) bi.pop_back();}
+	{
+		if(size() == 2)
+		return;
+		if(bi.back() == 0) 
+		bi.pop_back();
+	}
 	static BigInt& Abs(const BigInt &bt,BigInt &tmp)
 	{
 		tmp = bt;
@@ -74,8 +79,11 @@ public:
 	static void Sub(BigInt &b, const BigInt &b1, const BigInt &b2);
 	static void Mul(BigInt &bt,const BigInt &b1,const BigInt &b2);
 	static void Div(BigInt &bt,const BigInt &b1,const BigInt &b2);
-	static void Mod(BigInt &bt,const BigInt &b1,const BigInt &b2);
-
+	static void Mod(BigInt &bt,const BigInt &b1,const BigInt &b2);//bt = bt1 % bt2
+	static void Squate(BigInt &bt,const BigInt &bt1);//bt = bt1^2
+	static void Power(BigInt &bt,const BigInt &bt1,u_char n);//bt = bt1^n
+	static void Power(BigInt &bt,const BigInt &bt1,const BigInt &bt2);//bt = bt1^bt2
+	static void PowMod(BigInt &bt,const BigInt &bt1,const BigInt &bt2,const BigInt &bt3);//bt = bt1^bt2%bt3
 ////////////////////////////////////////
 	bool operator<(const BigInt &b)const;
 	bool operator>=(const BigInt &b)const;
@@ -175,6 +183,38 @@ BigInt::BigInt( u_char *str,int len)
 	}
 }
 ////////////////////////////////////////////////////////////////
+
+BigInt& BigInt::operator++()
+{
+	BigInt tmp(1);
+	BigInt t(1);
+	BigInt::Add(tmp,(*this),t);
+	(*this) = tmp;
+	return *this;
+}
+BigInt& BigInt::operator++(int)
+{
+	BigInt tmp(1);
+	tmp = *(this);
+	++(*this);
+	return tmp;
+}
+BigInt& BigInt::operator--()
+{
+	BigInt tmp(1);
+	BigInt t(1);
+	BigInt::Sub(tmp,(*this),t);
+	(*this) = tmp;
+	return *this;
+}
+BigInt& BigInt::operator--(int)
+{
+	BigInt tmp(1);
+	tmp = *(this);
+	--(*this);
+	return tmp;
+}
+///////////////////////////////////////////////////////////////
 bool BigInt::operator<(const BigInt &b)const
 {
 	if(GetSymbol()=='-'&&b.GetSymbol()== '+')
@@ -411,7 +451,7 @@ void  BigInt::Sub(BigInt &b,const BigInt &b1,const BigInt &b2)
 			it1 = tmp2.begin();
 			it1_end = tmp2.end();
 			it2 = tmp1.begin();
-			it2_end = tmp2.end();
+			it2_end = tmp1.end();
 		}
 		++it1;
 		++it2;
@@ -527,7 +567,6 @@ void BigInt::AddMove(BigInt &bt,const BigInt &bt1,int offset)
 	while(offset--  )
 	{
 		++it;
-		assert(it!=bt.end());
 	}
 	u_char add,sign;
 	while(it != bt.end() && it1 != bt1.end())
@@ -641,5 +680,135 @@ void BigInt::Div(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
 		--t;
 		div = 0;
 	}
+	btm.pop_front();
+//	cout<<"bt1 %  bt2 = ";	
+//	btm.show();
 
+}
+void  BigInt::Mod(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
+{
+	assert(bt2!=0);
+	bt.clear();
+	BigInt tmp1(0);
+	BigInt tmp2(0);
+	u_char sym1 = bt1.GetSymbol();
+	u_char sym2 = bt2.GetSymbol();
+	size_t len1 = bt1.size();
+	size_t len2 = bt2.size();
+	int k = len1 - len2;
+	Abs(bt1,tmp1);
+	Abs(bt2,tmp2);
+
+	if(sym1 == sym2)
+	bt.SetSymbol(POSITIVE);
+	else
+	bt.SetSymbol(NEGATIVE);
+
+	if(tmp1 == tmp2)
+	{
+		bt.push_back(1);
+		return;
+	}
+	if(tmp1 < tmp2)
+	{
+		bt = tmp1;
+		return;
+	}
+
+	BigInt btm;
+	btm.clear();
+	btm.SetSymbol(POSITIVE);
+//	u_char div = 0;
+	const_iter it = bt1.end();
+	
+	--it;
+	--len2;
+	while(len2--)
+	{
+		btm.push_front(*it);
+		--it;
+	}
+	const_iter t = it;
+	++t;
+	while(t != bt1.begin())
+	{
+		if(btm < tmp2)
+		{
+			btm.push_front(*it--);
+			--t;
+			continue;
+		}
+		while(btm >= tmp2)
+		{
+			btm -=tmp2;
+//			++div;
+		}
+//		bt.push_front(div);
+		btm.push_front(*it--);
+		--t;
+//		div = 0;
+	}
+	btm.pop_front();
+//	cout<<"bt1 %  bt2 = ";	
+//	btm.show();
+	bt = btm;
+
+}
+void BigInt::Squate(BigInt &bt,const BigInt &bt1)
+{
+	BigInt::Mul(bt,bt1,bt1);
+}
+void  BigInt::Power(BigInt &bt,const BigInt &bt1,u_char n)//bt = bt1^n
+{
+	BigInt tmp(1);
+	tmp = bt1;
+	bt = tmp;
+	u_char i = n;
+	while(--i)
+	{
+		BigInt::Mul(tmp,bt1,bt);
+		bt = tmp;
+	}
+}
+void BigInt::Power(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
+{
+	BigInt tmp(0);
+	BigInt t(0);
+	BigInt p(1);
+	bt = p;
+	assert(bt2 > t);
+	tmp = bt2;
+
+	while(!(tmp.size() == 2 &&tmp[1] == 0))
+	{
+		BigInt::Mul(p,bt1,bt);
+		bt = p;
+		--tmp;
+	}
+	
+}
+
+void BigInt::PowMod(BigInt &bt,const BigInt &bt1,const BigInt &bt2,const BigInt &bt3)//bt = bt1^bt2%bt3
+{
+	BigInt b2(0);
+	b2 = bt2;
+	BigInt ret(1);
+	BigInt bt1_mod_bt3(0);
+	BigInt::Mod(bt1_mod_bt3,bt1,bt3);
+	BigInt tmp(0);
+	while(!( b2.size()==2 &&b2[1] == 0))
+	{
+		BigInt::Mul(tmp,bt1_mod_bt3,ret);
+		BigInt::Mod(ret,tmp,bt3);
+		--b2;
+	}
+	bt = ret;
+	BigInt tmp1(2);
+	BigInt::Mod(tmp,bt2,tmp1);//tmp = bt2 % 2
+	bt.pop_front();
+	if((tmp[1] == 0)||bt1.GetSymbol()==POSITIVE)
+	bt.SetSymbol(POSITIVE);
+	else
+	bt.SetSymbol(NEGATIVE);
+	
 }
