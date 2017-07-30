@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<deque>
 #include<iostream>
+#include<assert.h>
+#include<string.h>
 #include<vector>
 using namespace std;
 #include"./bigint.h"
@@ -43,14 +45,14 @@ int main()
 
 	while(b1[j] != '\0')
 	{
-		bg1.push_front(b1[j]-'0');
+		bg1.push_front_cgi(b1[j]-'0');
 		++j;
 	}
 
 	if(b1[0] == '-')
-	bg1.push_front(b1[0]);
+	bg1.push_front_cgi(b1[0]);
 	else 
-	bg1.push_front(tm);
+	bg1.push_front_cgi(tm);
 
 	j = 0;
 	if(b2[0] =='-')
@@ -59,13 +61,13 @@ int main()
 	}
 	while(b2[j] != '\0')
 	{
-		bg2.push_front(b2[j]-'0');
+		bg2.push_front_cgi(b2[j]-'0');
 		++j;
 	}
 	if(b2[0] == '-')
-	bg2.push_front(b2[0]);
+	bg2.push_front_cgi(b2[0]);
 	else
-	bg2.push_front(tm);
+	bg2.push_front_cgi(tm);
 
 	switch(opt)
 	{
@@ -74,6 +76,12 @@ int main()
 		break;
 		case 2:
 		BigInt::Sub(bg,bg1,bg2);
+		break;
+		case 3:
+		BigInt::Mul(bg,bg1,bg2);
+		break;
+		case 4:
+		BigInt::Div(bg,bg1,bg2);
 		break;
 		default:
 		break;
