@@ -24,6 +24,10 @@ public:
 		*begin() = a;
 		bi.push_front(sym);
 	}
+	void  push_front_cgi(u_char a)
+	{
+		bi.push_front(a);
+	}
 	void clear()
 	{bi.clear();}
 	void pop_front()
@@ -93,9 +97,9 @@ public:
 	bool operator!=(const BigInt &b)const;
 
 	BigInt& operator++();
-	BigInt& operator++(int);
+	BigInt  operator++(int);
 	BigInt& operator--();
-	BigInt& operator--(int);
+	BigInt  operator--(int);
 ///////////////////////////////////////////////////////
 	BigInt& operator-=(const BigInt &b)
 	{
@@ -192,7 +196,7 @@ BigInt& BigInt::operator++()
 	(*this) = tmp;
 	return *this;
 }
-BigInt& BigInt::operator++(int)
+BigInt BigInt::operator++(int)
 {
 	BigInt tmp(1);
 	tmp = *(this);
@@ -207,7 +211,7 @@ BigInt& BigInt::operator--()
 	(*this) = tmp;
 	return *this;
 }
-BigInt& BigInt::operator--(int)
+BigInt BigInt::operator--(int)
 {
 	BigInt tmp(1);
 	tmp = *(this);
@@ -665,7 +669,9 @@ void BigInt::Div(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
 	while(t != bt1.begin())
 	{
 		if(btm < tmp2)
-		{
+		{	
+			u_char a = 0;
+			bt.push_front(a);
 			btm.push_front(*it--);
 			--t;
 			continue;
@@ -677,13 +683,14 @@ void BigInt::Div(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
 		}
 		bt.push_front(div);
 		btm.push_front(*it--);
+		btm.clear_head_zero();
 		--t;
 		div = 0;
 	}
 	btm.pop_front();
 //	cout<<"bt1 %  bt2 = ";	
 //	btm.show();
-
+	bt.clear_head_zero();
 }
 void  BigInt::Mod(BigInt &bt,const BigInt &bt1,const BigInt &bt2)
 {
