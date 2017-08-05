@@ -1,0 +1,71 @@
+编译链接时的错误如下：
+
+/home/enpos/dbtest/dbtest.c:18: undefined reference to `mysql_init'
+/home/enpos/dbtest/dbtest.c:18: undefined reference to `mysql_real_connect'
+/home/enpos/dbtest/dbtest.c:24: undefined reference to `mysql_set_character_set'
+/home/enpos/dbtest/dbtest.c:21: undefined reference to `mysql_error'
+
+编译和连接程序
+
+　　MySQL中有一个特殊的脚本,叫做mysql_config. 它会为你编译MySQL客户端,并连接到MySQL服务器提供有用的信息.你需要使用下面两个选项.
+
+　　1. --libs 选项 - 连接MySQL客户端函数库所需要的库和选项.
+
+　　$ mysql_config --libs
+
+　　输出:
+
+　　-L/usr/lib64/mysql -lmysqlclient -lz -lcrypt -lnsl -lm -L/usr/lib64 -lssl -lcrypto
+
+　　2. --cflags 选项 - 使用必要的include文件的选项等等.
+
+　　$ mysql_config --cflags
+
+　　输出:
+
+　　-I/usr/include/mysql -g -pipe -m64 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-strict-aliasing
+
+　　你需要将上面两个选项加入到对源文件的编译命令中. 所以,要编译上面的程序,要使用下面的命令:
+
+　　$ gcc -o mysqlapi $(mysql_config --cflags) mysql-c-api.c $(mysql_config --libs)
+
+　　执行编译后的程序:
+
+　　$ ./mysqlapi
+************************************************************************************************************************
+
+一个Makefile的实例：
+
+#CC = g++     #c++ 编译器
+CC = cc         #c编译器
+ 
+CFLAGS = -c -Werror -D_DEBUG -g -O3
+
+MYSQL_HOME=/usr/local/mysql
+MYSQL_LIBS = `mysql_config --libs`
+MYSQL_INCL = `mysql_config --cflags`
+ 
+LIBS = -L$(MYSQL_HOME)/lib $(MYSQL_LIBS)  #这里不需要指定libmysqlclient.a文件
+INCPATH = -I./ -I$(MYSQL_HOME)/include $(MYSQL_INCL)
+ 
+# global file
+ 
+OBJS_PATH = ./
+ 
+C_OBJS = dbmain.o dbtest.o
+ 
+ TARGET = dbmain
+ 
+# for link
+$(TARGET):$(C_OBJS)
+        $(CC) -o $@ $(C_OBJS) $(LIBS)
+        @rm -rf $(C_OBJ)
+ 
+$(OBJS_PATH)/%.o : ./%.cpp
+        $(CC) $(CFLAGS) $(INCPATH) $< -o $@
+ 
+$(OBJS_PATH)/%.o : ./%.c
+        $(CC) $(CFLAGS) $(INCPATH) $< -o $@
+ 
+clean:
+        rm -rf $(OBJS_PATH)*.o $(TARGET)

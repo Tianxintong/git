@@ -1,0 +1,322 @@
+1.连接数据库。
+    从C语言连接MySQL数据库包含两个步骤：
+    a）初始化连接句柄结构；
+    b）实际创建连接。   
+    首先使用mysql_init初始化连接句柄：    
+
+    MYSQL * mysql_init （MYSQL *）;  
+
+    通常传递一个空指针给mysql_init这个函数，它会返回一个指向新分配的连接句柄结构的指针。如果传递一个已有的结构，他将被重新初始化。如果出错，返回NULL。
+    初始化成功后，则使用mysql_real_connect来创建一个实际的连接：    
+[html] view plain copy
+print?
+
+    MYSQL * mysql_real_connect(MYSQL * connection,  
+          const char * server_host,  
+          const char * sql_user_name,     
+          const char * sql_password,  
+          const char *db_name,  
+          unsigned int port_number,  
+          const char * unix_socket_name,  
+          unsigned int flags);  
+
+    connection必须是已经初始化的连接句柄结构，server_host可以是主机名，也可以是IP地址，如果仅仅连接到本机，可以使用 localhost来优化连接类型。port_number和unix_socket_name应该分别为0和NULL，除非改变了MYSQL安装的默认 设置。
+   如果无法连接，返回NULL。完成连接后，在程序正常退出前，应该使用mysql_close关闭这个连接句柄。     
+[html] view plain copy
+print?
+
+    void mysql_close(MYSQL * connection);  
+
+    现在我们试图调用以上函数来建立一个对以上已经建好的数据库的访问，程序为connect1.c。内容如下：
+
+    #include <stdlib.h>  
+    #include <stdio.h>  
+    #include "mysql.h"  
+      
+    int main (int argc, char *argv[])  
+    {  
+            MYSQL *conn_ptr;  
+            conn_ptr=mysql_init(NULL); //连接初始化  
+            if(!conn_ptr){  
+                    fprintf(stderr, "mysql_init failed\n");  
+                    return EXIT_FAILURE;  
+            }  
+      
+            conn_ptr = mysql_real_connect(conn_ptr, "localhost", "moldao","newpassword","moldao_test", 0, NULL, 0); //建立实际连接  
+            //参数分别为：初始化的连接句柄指针，主机名（或者IP），用户名，密码，数据库名，0，NULL，0）后面三个参数在默认安装mysql>的情况下不用改  
+            if(conn_ptr){  
+                    printf("Connection success\n");  
+                    }  
+            else {  
+                    printf("Connection failed\n");  
+            }  
+      
+            mysql_close(conn_ptr); //关闭连接  
+            return EXIT_SUCCESS;  
+    }  
+
+    然后编译：    
+
+    ＃gcc -I/usr/include/mysql connect1.c -lmysqlclient -o connect1  
+
+   connect1.c:4:19: 错误：mysql.h：没有那个文件或目录
+    提示是没有找到mysql.h，产生这个错误的原因是没有mysql.h文件，它在mysql-devel包中，需要安装这个包：    
+
+    sudo yum install mysql-devel -y  
+
+    然后找一下：    
+
+    ＃locate mysql.h  
+    /usr/include/mysql/mysql.h  
+
+    这样就可以找到这个头文件了（-I的含义是在指定位置搜索头文件，参见man gcc）。再次尝试编译：    
+
+    ＃ gcc -I/usr/include/mysql connect1.c -lmysqlclient -o connect1  
+    /usr/bin/ld: cannot find -lmysqlclient  
+
+   collect2: ld 返回 1
+    链接库有问题，找不到mysqlclient链接库，man gcc发现可以在后面用-L指定搜索位置，于是我们先找到mysqlclient库的位置：    
+
+    locate *mysqlclient*  
+    /usr/lib/mysql/libmysqlclient.a  
+    /usr/lib/mysql/libmysqlclient.so  
+    /usr/lib/mysql/libmysqlclient.so.15  
+    /usr/lib/mysql/libmysqlclient.so.15.0.0  
+    /usr/lib/mysql/libmysqlclient_r.a  
+    /usr/lib/mysql/libmysqlclient_r.so  
+    /usr/lib/mysql/libmysqlclient_r.so.15  
+    /usr/lib/mysql/libmysqlclient_r.so.15.0.0  
+
+    这样找到位置就可以编译了：    
+
+    gcc -I/usr/include/mysql connect1.c -lmysqlclient -L/usr/lib/mysql -o connect1  
+
+    编译成功，于是就可以运行了，在此之前，确保mysqld已经在运行了：   
+
+    sudo /etc/rc.d/init.d/mysqld restart  
+
+    然后执行生成的可执行文件:   
+
+    ./connect1  
+     Connection success  
+
+    打印出了我们设计好了的连接成功的打印信息。这样就通过C语言进入了MySQL数据库了。
+2. 操作数据库   
+   进入数据库中之后，就可以开始对数据库进行读写操作了。
+    数据库的主要操作包括select, insert, update, delete四种。
+    a）sql语句的嵌入：
+        执行SQL语句的主要API函数是：        
+
+    int mysql_query(MYSQL *connection, const char * query)  
+
+        接受已经建立的连接结构指针和文本字符串形式的有效SQL语句（句末不用分号）。成功返回0。
+        还有一个比较重要的函数，mysql_affected_rows(),他返回无符号类型，当使用printf时，推荐使用%lu格式将其转换为无符号长整型。此函数返回受之前执行的update,delete,insert等查询影响的行数。        
+
+    my_ulonglong mysql_affected_rows(MYSQL *connection)；  
+
+        MySQL返回被一个更新操作修改的行数，但其他许多数据库将仅仅因为记录匹配where字句而把它视为已经更新过。
+        通常对于mysql_函数，返回值0表示没有行受到影响，正数则是实际的结果，一般表示受语句影响的行数。
+    b）select语句的使用：
+    select语句是SQL语句中使用最频繁的操作。    
+    一个完整的提取数据过程应该包含以下四个步骤：执行查询，提取数据，处理数据，清理。
+    使用mysql_query来发送SQL语句，使用mysql_store_result或者mysql_use_result来提取数据。然后使用 mysql_fetch_row调用来处理数据，最后，使用mysql_free_result来释放查询占用的内存资源。
+    mysql_use_result和mysql_store_result都是返回一个指向结果集结构（result set structure）的指针，如果失败则返回NULL。区别在于store将查询到的数据库中的结果直接放在这个结果集中，而use则不直接将最终数据库 的数据结果放在这个结果集中。store其实就是把数据直接读到本地内存中，因此它比较适合数据量较小的查询。use则类似于一种流的操作，并不是一次就 返回所有的结果。因此，对于这个结果集，必须反复调用mysql_fetch_row直到提取所有的数据。
+    1）一次获取所有的数据：    
+
+    MYSQL_RES *mysql_store_result(MYSQL *connection);  
+
+    在成功调用mysql_query之后使用此函数，将立即保存在客户端中返回的所有数据，并将指向此结果集的指针返回。如果失败则返回NULL。
+    成功之后，可以用mysql_num_rows来得到返回记录的数目，一般应该是个正数，若没有返回行匹配，则返回0.    
+
+    my_ulonglong mysql_num_rows(MYSQL_RES *result);  
+
+    现在得到来数据，可使用mysql_fetch_row来处理它，也可以使用mysql_data_seek,mysql_row_seek和mysql_row_tell在数据集中来回移动。    
+
+    MYSQL_ROW mysql_fetch_row(MYSQL_RES *result);  
+
+    此函数从上面得到的结果集中提取一行，并把它放在一个行结构中。当数据用完或者出错时返回NULL。    
+
+    void mysql_data_seek(MYSQL_RES *result, my_ulonglong offset);  
+
+    此函数允许结构集当前指针的跳转，设置会被下一个mysql_fetch_row操作返回的行。offset是行号，在0到总行数减1的范围内。传递0，则返回初始位置。    
+
+    MYSQL_ROW_OFFSET mysql_row_tell(MYSQL_RES *result);  
+
+    此函数返回结果集的当前位置。不能把它用于mysql_data_seek。
+    完成来对数据的所有操作之后，必须调用mysql_free_result来让MYSQL数据库完成善后处理。    
+
+    void mysql_free_result(MYSQL_RES *result);  
+
+使用范例:
+
+    MYSQL my_connection;  
+    MYSQL_RES *res_ptr;  
+    MYSQL_ROW sqlrow;  
+      
+     mysql_init(&my_connection);  
+      
+     if(mysql_real_connect(&my_connection, "localhost", "moldao","password","moldao_test", 0, NULL, 0)){  
+                 printf("Connection success\n");  
+      
+                 res = mysql_query(&my_connection, "select * from children where age < 10");  
+      
+                 if(res){  
+                         printf("select error: %s\n", mysql_error(&my_connection));  
+      
+                 }else {  
+                         res_ptr = mysql_store_result(&my_connection);  
+                         if(res_ptr){  
+                              printf("Retrieved %lu rows\n", (unsigned long)mysql_num_rows (res_ptr));   
+                              
+                            while (sqlrow = mysql_fetch_row(res_ptr)){      
+                                   unsigned int field_count;  
+                                   field_count =0;  
+                               while(field_count < mysql_field_count(&my_connection)){  
+                                   printf("%s ", sqlrow[field_count]);field_count++;  
+                                            }  
+                                 }  
+                                 if(mysql_errno(&my_connection)){  
+                                         printf("Retrive error : %s\n", mysql_error(&my_connection));  
+                                 }  
+                         }  
+                 mysql_free_result(res_ptr);  
+                 }  
+      mysql_close(&my_connection);  
+
+
+    2）一次提取一行数据
+    建议使用这种提取数据的方式。它能取得更好的网络负载平衡，以及减少大数据集可能造成的存储过载。但是它也增加来时延，并且在特殊的情况下，比如网络链接在操作中途失败时，可能会得到不完整的数据甚至造成混乱。
+   此时依靠mysql_use_result：   
+
+    MYSQL_RES *mysql_use_result（MYSQL * connection）;  
+
+    与store一样，出错返回NULL，成功则返回指向结果集对象的指针。
+使用范例:
+
+    //这里只写取数据的部分  
+    res_ptr = mysql_store_result(&my_connection);  
+      if(res_ptr){  
+         while (sqlrow = mysql_fetch_row(res_ptr)){  
+             //display_row_or_dealwith_row_here;  
+             }  
+         }  
+
+    c)update,insert,和delete语句的使用
+    update, insert和delete这三个操作是不用返回任何数据的语句，他们都是使用mysql_query来执行语句。        
+使用范例:
+
+    int res = mysql_query(&my_connection, "SQL语句");  
+    if(!res){  
+         printf("operation success\naffected %lu rows\n", (unsigned long)mysql_affected_row (&my_connection));  
+    }  
+    else{  
+         fprintf(stderr, "failed error: %d: %s", mysql_errno(&my_connection), mysql_error(&my_connection));  
+    }  
+
+   注意的是mysql_affected_row返回的是真正受到影响或者说是被改变的行数，而不仅仅是匹配where字句的行数。
+      
+3. 一个完整的显示数据库中元数据和数据的例子：
+
+    #include <stdlib.h>  
+    #include <stdio.h>  
+      
+    #include "mysql.h"  
+      
+    MYSQL my_connection;  
+    MYSQL_RES *res_ptr;  
+    MYSQL_ROW sqlrow;  
+      
+    void display_header();  
+    void display_row();  
+      
+    int main (int argc, char *argv[])  
+    {  
+      
+            int first_row =1;  
+            int res;  
+      
+            mysql_init(&my_connection); //连接初始化  
+    /*      if(!conn_ptr){  
+                    fprintf(stderr, "mysql_init failed\n");  
+                    return EXIT_FAILURE;  
+            }  
+    */  
+            if(mysql_real_connect(&my_connection, "localhost", "moldao","savage","moldao_test", 0, NULL, 0)){  
+                    printf("Connection success\n");  
+      
+                    res = mysql_query(&my_connection, "select * from children where age > 4");  
+                    if(res){  
+                            fprintf(stderr, "Select error : %s\n", mysql_error(&my_connection));  
+                            }  
+                    else{  
+                            res_ptr = mysql_use_result(&my_connection);  
+                            if(res_ptr){  
+                                    display_header();  
+                                    while((sqlrow = mysql_fetch_row(res_ptr))){  
+                                            if(first_row){  
+                                                    display_header();  
+                                                    first_row = 0;  
+                                                    }  
+                                            display_row();  
+                                            }  
+                                    if(mysql_errno(&my_connection)){  
+                                            fprintf(stderr, "Retrive error: %s\n", mysql_error(&my_connection));  
+                                            }  
+                                    }  
+                            mysql_free_result(res_ptr);  
+                            }  
+      
+                    mysql_close(&my_connection);  
+            }  
+            else {  
+                    fprintf(stderr,"Connection failed\n");  
+      
+                    if(mysql_errno(&my_connection)){  
+                    fprintf(stderr, "Connection error %d: %s\n", mysql_errno(&my_connection), mysql_error (&my_connection));  
+                            }  
+           }   
+      
+            return EXIT_SUCCESS;  
+    }  
+      
+    void display_header(){  
+            MYSQL_FIELD *field_ptr;  
+      
+            printf("Column details: \n");  
+            while((field_ptr = mysql_fetch_field(res_ptr))!= NULL){  
+                    printf("\t Name: %s\n", field_ptr->name);  
+                    printf("\t Type: ");  
+                    if(IS_NUM(field_ptr->type)){  
+                            printf("Numeric field\n");  
+                    }else{  
+                            switch(field_ptr->type){  
+                            case FIELD_TYPE_VAR_STRING:  
+                                    printf("VARCHAR\n");break;  
+                           case FIELD_TYPE_LONG:  
+                                    printf("LONG\n");break;  
+                            default:  
+                                    printf("Type is %d, check in mysql_com.h\n", field_ptr->type);  
+                            }  
+                    }  
+      
+            printf("\t Max width %ld\n", field_ptr ->length);  
+            if(field_ptr->flags & AUTO_INCREMENT_FLAG)  
+                    printf("\t Auto increment\n");  
+                    printf("\n");  
+            }  
+    }  
+      
+      
+    void display_row(){  
+            unsigned int field_count;  
+      
+            field_count = 0;  
+            while(field_count < mysql_field_count(&my_connection)){  
+            if(sqlrow[field_count])  
+                    printf("%s ", sqlrow[field_count]);  
+            else printf("NULL");  
+            field_count++;  
+      
+            }  
+            printf("\n");  
+    }  

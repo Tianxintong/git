@@ -1,0 +1,26 @@
+0、修改root密码
+  mysql -uroot -p<old_passwd> password <new_passwd>
+  eg:mysql -uroot -p123 password 456
+  启动数据库
+  systemctl start mariadb
+
+1、创建数据库
+   CREATE DATABASE <database_name>
+2、选中数据库
+   USE <database_name>
+3、创建表
+   CREATE TABLE user_info 
+   (
+     user_id int(10), 
+     user_name char(10), 
+     user_passwd char(10), 
+     user_tel char(11) 
+   );
+4、显示表
+   SHOW TABLES；
+5、显示表列
+   SHOW COLUMNS FROM <table_name>;
+6、插入数据
+   INSERT INTO <table_name> VALUES (v1,v2,.....);
+7、显示表的所有数据
+   SELECT * FROM <table_name>;
