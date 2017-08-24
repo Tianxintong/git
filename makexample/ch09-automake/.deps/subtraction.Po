@@ -1,3 +1,6 @@
-subtraction.o: lib/subtraction.cpp lib/subtraction.h
+subtraction.o: lib/subtraction.cpp /usr/include/stdc-predef.h \
+ lib/subtraction.h
+
+/usr/include/stdc-predef.h:
 
 lib/subtraction.h:

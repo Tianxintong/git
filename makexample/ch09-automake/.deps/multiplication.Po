@@ -1,3 +1,6 @@
-multiplication.o: lib/multiplication.cpp lib/multiplication.h
+multiplication.o: lib/multiplication.cpp /usr/include/stdc-predef.h \
+ lib/multiplication.h
+
+/usr/include/stdc-predef.h:
 
 lib/multiplication.h:

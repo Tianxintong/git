@@ -1,3 +1,5 @@
-addition.o: lib/addition.cpp lib/addition.h
+addition.o: lib/addition.cpp /usr/include/stdc-predef.h lib/addition.h
+
+/usr/include/stdc-predef.h:
 
 lib/addition.h:

@@ -9,7 +9,7 @@ OBJS = $(LIBDIR)/add.o $(LIBDIR)/sub.o $(LIBDIR)/mul.o $(LIBDIR)/div.o
 all = all.sta
 
 $(all): main.o $(LIBS)
-	g++ -o $@ $^
+	g++ -o $@ $^ -L $(LIBS)
 
 $(LIBS): $(OBJS)
 	ar -rv $@ $(OBJS)

@@ -9,11 +9,11 @@ OBJS = $(LIBDIR)/add.o $(LIBDIR)/sub.o $(LIBDIR)/mul.o $(LIBDIR)/div.o
 all = all.dyn
 
 $(all): main.o $(LIBS)
-	g++ -o $@ $^
+	g++ -o $@ $^  -L $(LIBS)
 
 $(LIBS): $(OBJS)
-	gcc -shared -fPIC -o $@ $^
-
+	gcc -shared -fPIC -o $(LIBS) $(OBJS)
+#	gcc -shared -fPIC -o $@ $^
 clean:
 	$(RM) $(OBJS) $(LIBS) $(all) main.o
 	
